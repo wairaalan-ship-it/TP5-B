@@ -1,0 +1,490 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #10152b, #202d50);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    background: #1c2745;
+    padding: 25px 18px;
+    border-radius: 22px;
+    box-shadow: 0 10px 35px #0006;
+}
+
+h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+}
+
+.subtitle {
+    color: #b8c5e5;
+    margin-bottom: 22px;
+}
+
+.stats {
+    display: flex;
+    justify-content: space-around;
+    gap: 8px;
+    margin: 20px 0;
+}
+
+.stat {
+    background: #29385e;
+    padding: 12px 8px;
+    border-radius: 12px;
+    flex: 1;
+}
+
+.stat span {
+    display: block;
+    font-size: 23px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 9px;
+    margin: 22px auto;
+    max-width: 330px;
+}
+
+.cell {
+    aspect-ratio: 1;
+    border: none;
+    border-radius: 14px;
+    background: #34466f;
+    color: white;
+    font-size: clamp(42px, 13vw, 65px);
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.cell:active {
+    transform: scale(0.95);
+}
+
+.cell:disabled {
+    cursor: default;
+    opacity: 1;
+}
+
+.cell.x {
+    color: #64c8ff;
+}
+
+.cell.o {
+    color: #ff8b9d;
+}
+
+.status {
+    min-height: 28px;
+    color: #d8e2ff;
+    font-weight: bold;
+    margin: 15px 0;
+}
+
+button.main-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: #5689ff;
+    color: white;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button.main-btn:hover {
+    background: #3e72e8;
+}
+
+button:focus-visible {
+    outline: 3px solid white;
+    outline-offset: 3px;
+}
+
+.screen {
+    display: none;
+}
+
+.screen.active {
+    display: block;
+}
+
+.message {
+    color: #c4d1f0;
+    line-height: 1.5;
+}
+
+.rules {
+    color: #aab9dc;
+    font-size: 13px;
+    margin-top: 20px;
+    line-height: 1.6;
+}
+
+@media (max-width: 380px) {
+    .container {
+        padding: 20px 12px;
+    }
+
+    h1 {
+        font-size: 27px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- PANTALLA DE INICIO -->
+    <section id="startScreen" class="screen active">
+        <h1>⭕ Tic Tac Toe ❌</h1>
+        <p class="subtitle">¡Desafía a la computadora!</p>
+
+        <p class="message">
+            Vos sos X y la computadora es O.<br>
+            Conseguí tres símbolos iguales en línea
+            para ganar la ronda.
+        </p>
+
+        <div class="stats">
+            <div class="stat">❤️ Vidas<span>3</span></div>
+            <div class="stat">⭐ Puntos<span>0</span></div>
+        </div>
+
+        <button class="main-btn" onclick="startGame()">
+            JUGAR
+        </button>
+
+        <p class="rules">
+            3 vidas · +10 puntos por victoria<br>
+            Los empates no descuentan vidas.
+        </p>
+    </section>
+
+
+    <!-- PANTALLA DEL JUEGO -->
+    <section id="gameScreen" class="screen">
+        <h1>⭕ Tic Tac Toe ❌</h1>
+
+        <div class="stats">
+            <div class="stat">
+                ❤️ Vidas
+                <span id="lives">3</span>
+            </div>
+
+            <div class="stat">
+                ⭐ Puntaje
+                <span id="score">0</span>
+            </div>
+        </div>
+
+        <p id="status" class="status">Tu turno (X)</p>
+
+        <div class="board" id="board">
+            <button class="cell" data-index="0"></button>
+            <button class="cell" data-index="1"></button>
+            <button class="cell" data-index="2"></button>
+            <button class="cell" data-index="3"></button>
+            <button class="cell" data-index="4"></button>
+            <button class="cell" data-index="5"></button>
+            <button class="cell" data-index="6"></button>
+            <button class="cell" data-index="7"></button>
+            <button class="cell" data-index="8"></button>
+        </div>
+
+        <p class="message">
+            Vos: X &nbsp; | &nbsp; Computadora: O
+        </p>
+
+        <button class="main-btn" onclick="endGameEarly()">
+            TERMINAR JUEGO
+        </button>
+    </section>
+
+
+    <!-- PANTALLA DE RESULTADO -->
+    <section id="resultScreen" class="screen">
+        <h1 id="resultTitle">¡Ronda terminada!</h1>
+
+        <p id="resultMessage" class="message"></p>
+
+        <div class="stats">
+            <div class="stat">
+                ❤️ Vidas
+                <span id="finalLives">3</span>
+            </div>
+
+            <div class="stat">
+                ⭐ Puntaje
+                <span id="finalScore">0</span>
+            </div>
+        </div>
+
+        <button id="nextButton" class="main-btn"
+                onclick="nextRound()">
+            SIGUIENTE RONDA
+        </button>
+
+        <button class="main-btn" onclick="restartGame()"
+                style="background:#465575">
+            VOLVER A EMPEZAR
+        </button>
+    </section>
+
+</div>
+
+
+<script>
+let board = ["", "", "", "", "", "", "", "", ""];
+let lives = 3;
+let score = 0;
+let gameActive = false;
+let playerTurn = true;
+
+const cells = document.querySelectorAll(".cell");
+
+const combinations = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+];
+
+function showScreen(screenId) {
+    document.querySelectorAll(".screen").forEach(screen => {
+        screen.classList.remove("active");
+    });
+
+    document.getElementById(screenId).classList.add("active");
+}
+
+function startGame() {
+    lives = 3;
+    score = 0;
+    updateStats();
+    resetBoard();
+    showScreen("gameScreen");
+    setStatus("Tu turno (X)");
+}
+
+function resetBoard() {
+    board = ["", "", "", "", "", "", "", "", ""];
+    gameActive = true;
+    playerTurn = true;
+
+    cells.forEach(cell => {
+        cell.textContent = "";
+        cell.className = "cell";
+        cell.disabled = false;
+    });
+}
+
+function updateStats() {
+    document.getElementById("lives").textContent = lives;
+    document.getElementById("score").textContent = score;
+}
+
+function setStatus(message) {
+    document.getElementById("status").textContent = message;
+}
+
+cells.forEach(cell => {
+    cell.addEventListener("click", () => {
+        const index = Number(cell.dataset.index);
+
+        if (!gameActive || !playerTurn || board[index] !== "") {
+            return;
+        }
+
+        // Turno del jugador
+        makeMove(index, "X");
+
+        if (checkWinner("X")) {
+            finishRound("win");
+            return;
+        }
+
+        if (board.every(position => position !== "")) {
+            finishRound("draw");
+            return;
+        }
+
+        // Turno de la computadora
+        playerTurn = false;
+        setStatus("Turno de la computadora...");
+
+        cells.forEach(button => button.disabled = true);
+
+        setTimeout(computerMove, 500);
+    });
+});
+
+function makeMove(index, symbol) {
+    board[index] = symbol;
+    cells[index].textContent = symbol;
+    cells[index].classList.add(symbol.toLowerCase());
+}
+
+function computerMove() {
+    if (!gameActive) return;
+
+    const available = board
+        .map((value, index) => value === "" ? index : null)
+        .filter(index => index !== null);
+
+    if (available.length === 0) return;
+
+    const randomIndex = available[
+        Math.floor(Math.random() * available.length)
+    ];
+
+    makeMove(randomIndex, "O");
+
+    if (checkWinner("O")) {
+        finishRound("lose");
+        return;
+    }
+
+    if (board.every(position => position !== "")) {
+        finishRound("draw");
+        return;
+    }
+
+    playerTurn = true;
+    cells.forEach(button => button.disabled = false);
+    setStatus("Tu turno (X)");
+}
+
+function checkWinner(symbol) {
+    return combinations.some(combination => {
+        return combination.every(index => board[index] === symbol);
+    });
+}
+
+function finishRound(result) {
+    gameActive = false;
+    cells.forEach(cell => cell.disabled = true);
+
+    if (result === "win") {
+        score += 10;
+        showResult(
+            "¡GANASTE! 🎉",
+            "¡Excelente! Conseguíste tres X en línea. Sumaste 10 puntos."
+        );
+    }
+
+    if (result === "lose") {
+        lives--;
+
+        showResult(
+            "¡PERDISTE! 😮",
+            "La computadora consiguió tres O en línea. Perdiste una vida."
+        );
+    }
+
+    if (result === "draw") {
+        showResult(
+            "¡EMPATE! 🤝",
+            "Nadie consiguió tres símbolos en línea. No perdiste vidas."
+        );
+    }
+
+    updateStats();
+
+    document.getElementById("finalLives").textContent = lives;
+    document.getElementById("finalScore").textContent = score;
+
+    if (lives <= 0) {
+        document.getElementById("resultTitle").textContent = "GAME OVER";
+        document.getElementById("resultMessage").textContent =
+            "Te quedaste sin vidas. Tu puntaje final fue " + score + " puntos.";
+        document.getElementById("nextButton").style.display = "none";
+    } else {
+        document.getElementById("nextButton").style.display = "block";
+        document.getElementById("nextButton").textContent =
+            "SIGUIENTE RONDA";
+    }
+
+    showScreen("resultScreen");
+}
+
+function showResult(title, message) {
+    document.getElementById("resultTitle").textContent = title;
+    document.getElementById("resultMessage").textContent = message;
+}
+
+function nextRound() {
+    if (lives <= 0) return;
+
+    resetBoard();
+    updateStats();
+    showScreen("gameScreen");
+    setStatus("Tu turno (X)");
+}
+
+function restartGame() {
+    lives = 3;
+    score = 0;
+    updateStats();
+    resetBoard();
+
+    document.getElementById("nextButton").style.display = "block";
+
+    showScreen("startScreen");
+}
+
+function endGameEarly() {
+    gameActive = false;
+    cells.forEach(cell => cell.disabled = true);
+
+    document.getElementById("resultTitle").textContent =
+        "JUEGO TERMINADO";
+
+    document.getElementById("resultMessage").textContent =
+        "Terminaste la partida. Tu puntaje fue de " + score + " puntos.";
+
+    document.getElementById("finalLives").textContent = lives;
+    document.getElementById("finalScore").textContent = score;
+    document.getElementById("nextButton").style.display = "none";
+
+    showScreen("resultScreen");
+}
+</script>
+
+</body>
+</html>
